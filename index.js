@@ -67,11 +67,13 @@ io.on("connection", (socket) => {
       // 방 폭파
       io.to(roomName).emit("deleteRoom", roomName);
       io.socketsLeave(roomName);
+      delete socket["roomName"];
       delete roomList[roomName];
       io.emit("roomList", { roomList: Object.keys(roomList) });
     } else {
       // 방 나가기
       socket.leave(roomName);
+      delete socket["roomName"];
       io.to(roomName).emit(
         "updateUser",
         [...io.sockets.adapter.rooms.get(roomName)].map((id) => io.sockets.sockets.get(id).nickname)
@@ -93,11 +95,13 @@ io.on("connection", (socket) => {
         if (nickname === roomList[roomName]) {
           io.to(roomName).emit("deleteRoom", roomName);
           io.socketsLeave(roomName);
+          delete socket["roomName"];
           delete roomList[roomName];
           io.emit("roomList", { roomList: Object.keys(roomList) });
         } else {
           socket.to(roomName).emit("talk", { id: Date(), nickname: "키위🥝", msg: `${nickname}님께서 나가셨습니다.` });
           socket.leave(roomName);
+          delete socket["roomName"];
           io.to(roomName).emit(
             "updateUser",
             [...io.sockets.adapter.rooms.get(roomName)].map((id) => io.sockets.sockets.get(id).nickname)

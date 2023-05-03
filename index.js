@@ -62,16 +62,16 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("outRoom", (roomName) => {
+  socket.on("outRoom", () => {
+    const roomName = socket.roomName;
     if (socket.nickname === roomList[roomName]) {
-      // 방 폭파
-      io.to(roomName).emit("deleteRoom", roomName);
+      io.to(roomName).emit("deleteRoom");
+      [...io.sockets.adapter.rooms.get(roomName)].forEach((id) => delete io.sockets.sockets.get(id)["roomName"]);
       io.socketsLeave(roomName);
       delete socket["roomName"];
       delete roomList[roomName];
       io.emit("roomList", { roomList: Object.keys(roomList) });
     } else {
-      // 방 나가기
       socket.leave(roomName);
       delete socket["roomName"];
       io.to(roomName).emit(
@@ -90,12 +90,14 @@ io.on("connection", (socket) => {
     if (socket.nickname) {
       const nickname = socket.nickname;
       delete usedNickname[nickname];
+      io.emit("userCount", { count: Object.keys(usedNickname).length });
+
       if (socket.roomName) {
         const roomName = socket.roomName;
         if (nickname === roomList[roomName]) {
-          io.to(roomName).emit("deleteRoom", roomName);
+          io.to(roomName).emit("deleteRoom");
+          [...io.sockets.adapter.rooms.get(roomName)].forEach((id) => delete io.sockets.sockets.get(id)["roomName"]);
           io.socketsLeave(roomName);
-          delete socket["roomName"];
           delete roomList[roomName];
           io.emit("roomList", { roomList: Object.keys(roomList) });
         } else {
@@ -109,8 +111,6 @@ io.on("connection", (socket) => {
         }
       }
     }
-
-    io.emit("userCount", { count: Object.keys(usedNickname).length });
   });
 });
 
